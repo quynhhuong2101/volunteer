@@ -1,0 +1,103 @@
+﻿
+> build
+> vite build
+
+[36mvite v4.5.14 [32mbuilding for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 1 modules transformed.
+[32mÔ£ô built in 52ms[39m
+node.exe : 
+[31m[vite]: Rollup 
+failed to resolve 
+import "alpinejs" 
+from "D:\volunteer\re
+sources\js\app.js".
+At line:1 char:1
++ & "C:\Program Files
+\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: ([31m[v   
+ ite]: Ro...ces\j    
+s\app.js".:Strin    
+g) [], RemoteExc    
+eption
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+This is most likely 
+unintended because 
+it can break your 
+application at 
+runtime.
+If you do want to 
+externalize this 
+module explicitly 
+add it to
+`build.rollupOptions.
+external`[39m
+[31merror during 
+build:
+Error: [vite]: 
+Rollup failed to 
+resolve import 
+"alpinejs" from "D:\v
+olunteer\resources\js
+\app.js".
+This is most likely 
+unintended because 
+it can break your 
+application at 
+runtime.
+If you do want to 
+externalize this 
+module explicitly 
+add it to
+`build.rollupOptions.
+external`
+    at viteWarn (file
+:///D:/volunteer/node
+_modules/vite/dist/no
+de/chunks/dep-827b23d
+f.js:48272:27)
+    at 
+onRollupWarning (file
+:///D:/volunteer/node
+_modules/vite/dist/no
+de/chunks/dep-827b23d
+f.js:48304:9)
+    at onwarn (file:/
+//D:/volunteer/node_m
+odules/vite/dist/node
+/chunks/dep-827b23df.
+js:48032:13)
+    at file:///D:/vol
+unteer/node_modules/r
+ollup/dist/es/shared/
+node-entry.js:24276:1
+3
+    at Object.logger 
+[as onLog] (file:///D
+:/volunteer/node_modu
+les/rollup/dist/es/sh
+ared/node-entry.js:25
+950:9)
+    at ModuleLoader.h
+andleInvalidResolvedI
+d (file:///D:/volunte
+er/node_modules/rollu
+p/dist/es/shared/node
+-entry.js:24862:26)
+    at file:///D:/vol
+unteer/node_modules/r
+ollup/dist/es/shared/
+node-entry.js:24822:2
+6[39m
