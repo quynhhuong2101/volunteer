@@ -99,9 +99,15 @@
                         <div class="flex justify-between items-start">
                              <h3 class="font-bold {{ $event['status'] == 'rejected' ? 'text-red-700' : 'text-slate-800' }} text-xl line-clamp-1 group-hover/card:text-indigo-600 transition-colors" title="{{ $event['name'] }}">{{ $event['name'] }}</h3>
                              @if($event['status'] == 'approved')
-                                <span class="flex-shrink-0 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center gap-1">
-                                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Hoạt động
-                                </span>
+                                @if($event['is_published'])
+                                    <span class="flex-shrink-0 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center gap-1">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Đang mở
+                                    </span>
+                                @elseif(!$event['has_form'])
+                                    <span class="flex-shrink-0 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-600 border border-amber-100" title="Đã duyệt nhưng chưa có Form đăng ký">Thiếu Form ĐK</span>
+                                @else
+                                    <span class="flex-shrink-0 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100" title="Chờ bạn xác nhận công bố">Chờ công bố</span>
+                                @endif
                              @elseif($event['status'] == 'pending')
                                 <span class="flex-shrink-0 px-3 py-1 rounded-full text-xs font-bold bg-orange-50 text-orange-600 border border-orange-100">Chờ duyệt</span>
                              @elseif($event['status'] == 'rejected')
@@ -166,18 +172,17 @@
                 @if($event['status'] == 'rejected')
                     <span class="text-xs font-bold text-red-500 italic">Cần thao tác lại</span>
                     <div class="flex gap-3">
-                        <a href="#" class="px-4 py-2 border border-red-200 text-red-600 font-bold text-sm rounded-lg hover:bg-white transition-colors">Xóa bỏ</a>
+                        <form action="{{ route('organization.events.destroy', $event['id']) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa bỏ chiến dịch này?');" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="px-4 py-2 border border-red-200 text-red-600 font-bold text-sm rounded-lg hover:bg-white transition-colors">Xóa bỏ</button>
+                        </form>
                         <a href="{{ route('organization.events.edit', $event['id']) }}" class="px-4 py-2 bg-red-600 text-white font-bold text-sm rounded-lg hover:bg-red-700 shadow-lg shadow-red-500/20 transition-all flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             Sửa lại
                         </a>
                     </div>
                 @else
-                    <!-- Participants Preview -->
-                     <div class="text-sm font-bold text-slate-600">
-                        <span class="text-indigo-600">{{ $event['registered'] }}</span> người đăng ký
-                    </div>
-
                     <!-- Primary Actions -->
                     <div class="flex gap-2">
                         <a @click.stop href="{{ route('organization.events.edit', $event['id']) }}" class="p-2 text-slate-500 hover:text-blue-600 hover:bg-white hover:shadow-sm rounded-lg transition-all" title="Chỉnh sửa thông tin">
@@ -201,10 +206,20 @@
                         </a>
 
                         @if($event['id'])
-                        <a @click.stop href="{{ route('chat.show', $event['id']) }}" class="px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center gap-1.5">
+                        <a @click.stop href="{{ route('chat.show', $event['id']) }}" class="px-3 py-2 bg-indigo-50 text-indigo-700 text-sm font-bold rounded-lg hover:bg-indigo-100 hover:text-indigo-800 transition-all flex items-center gap-1.5 whitespace-nowrap border border-indigo-100" title="Thảo luận chiến dịch">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                            Thảo luận
+                            <span class="hidden sm:inline">Thảo luận</span>
                         </a>
+                        @endif
+
+                        @if($event['status'] == 'approved' && !$event['is_published'])
+                        <form @click.stop action="{{ route('organization.events.publish', $event['id']) }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit" class="px-4 py-2 bg-emerald-500 text-white text-sm font-bold rounded-lg shadow-sm shadow-emerald-200 hover:bg-emerald-600 transition-all flex items-center gap-1.5 whitespace-nowrap" title="Công bố sự kiện này để sinh viên có thể đăng ký">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                                Xác nhận đăng
+                            </button>
+                        </form>
                         @endif
 
                         @if($event['status'] != 'cancelled' && $event['status'] != 'ended')
@@ -223,6 +238,16 @@
                             @csrf
                             <button type="submit" class="p-2 text-slate-500 hover:text-red-600 hover:bg-white hover:shadow-sm rounded-lg transition-all" title="Hủy sự kiện">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </form>
+                        @endif
+
+                        @if($event['status'] == 'cancelled')
+                        <form @click.stop action="{{ route('organization.events.destroy', $event['id']) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn XÓA VĨNH VIỄN sự kiện này? Hành động này không thể hoàn tác.');" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="p-2 text-red-500 hover:text-red-700 hover:bg-white hover:shadow-sm rounded-lg transition-all" title="Xóa vĩnh viễn sự kiện">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
                         </form>
                         @endif

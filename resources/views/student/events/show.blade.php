@@ -19,7 +19,7 @@
         <div class="lg:col-span-2 space-y-8">
             <!-- Hero Image -->
             <div class="relative h-64 md:h-80 rounded-2xl overflow-hidden shadow-sm">
-                <img src="{{ $event['image'] }}" alt="{{ $event['title'] }}" class="w-full h-full object-cover">
+                <img src="{{ \Illuminate\Support\Str::startsWith($event['image'], 'http') ? $event['image'] : ($event['image'] ? asset($event['image']) : 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80') }}" alt="{{ $event['title'] }}" class="w-full h-full object-cover">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
                 <div class="absolute bottom-0 left-0 p-6 md:p-8">
                     <span class="inline-block bg-accent text-white text-xs font-bold px-3 py-1 rounded-full mb-3">
@@ -383,13 +383,13 @@
                                     <label class="block text-sm font-bold text-gray-700 mb-2">Vị trí đăng ký <span class="text-red-500">*</span></label>
                                     <div class="space-y-2">
                                         @foreach($positions as $pos)
-                                        <label class="flex items-center p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-indigo-50 hover:border-indigo-200 transition-colors">
-                                            <input type="radio" name="position_id" value="{{ $pos->id }}" class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" required>
+                                        <label class="flex items-center p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-indigo-50 hover:border-indigo-200 transition-colors {{ $pos->remaining <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}">
+                                            <input type="radio" name="position_id" value="{{ $pos->id }}" class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" {{ $pos->remaining <= 0 ? 'disabled' : 'required' }}>
                                             <div class="ml-3 flex-1">
                                                 <span class="block text-sm font-bold text-gray-900">{{ $pos->name }}</span>
                                                 <span class="block text-xs text-gray-500">{{ $pos->description }}</span>
                                             </div>
-                                            <div class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">SL: {{ $pos->quantity }}</div>
+                                            <div class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">Còn lại: {{ $pos->remaining }}</div>
                                         </label>
                                         @endforeach
                                     </div>

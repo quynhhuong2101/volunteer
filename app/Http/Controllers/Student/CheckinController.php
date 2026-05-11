@@ -17,6 +17,9 @@ class CheckinController extends Controller
 
         // Fetch tasks
         $tasks = \App\Models\Task::whereIn('event_id', $eventIds)
+            ->whereHas('event', function ($q) {
+                $q->where('status', '!=', 'cancelled');
+            })
             ->where(function($query) use ($user, $registrations) {
                 $query->where('user_id', $user->id)
                       ->orWhere(function($q) use ($registrations) {
@@ -61,25 +64,25 @@ class CheckinController extends Controller
                 ];
             });
 
-        // Mock Checkin History
-        $history = [
-            [
-                'id' => 101,
-                'event' => 'Dạy học tình nguyện Tre Xanh',
-                'location' => 'Mái ấm Tre Xanh, Gò Vấp',
-                'timestamp' => now()->subHours(2),
-                'status' => 'success',
-                'points' => 15
-            ],
-            [
-                'id' => 102,
-                'event' => 'Tập huấn Sơ cấp cứu',
-                'location' => 'Hội trường A, Đại học Bách Khoa',
-                'timestamp' => now()->subDays(2),
-                'status' => 'success',
-                'points' => 10
-            ]
-        ];
+        // Real Checkin History
+        $history = \App\Models\Checkin::with('event')
+            ->where('user_id', $user->id)
+            ->whereNotNull('checkin_time')
+            ->whereHas('event', function($q) {
+                $q->where('status', '!=', 'cancelled');
+            })
+            ->orderBy('checkin_time', 'desc')
+            ->get()
+            ->map(function($checkin) {
+                return [
+                    'id' => $checkin->id,
+                    'event' => $checkin->event ? $checkin->event->title : 'Sự kiện không xác định',
+                    'location' => $checkin->event ? $checkin->event->location : 'Không xác định',
+                    'timestamp' => \Carbon\Carbon::parse($checkin->checkin_time),
+                    'status' => $checkin->is_verified ? 'success' : 'pending',
+                    'points' => 0
+                ];
+            });
 
         return view('student.checkin.index', compact('tasks', 'history'));
     }

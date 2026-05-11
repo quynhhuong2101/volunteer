@@ -35,6 +35,7 @@ class EventController extends Controller
         
         // Show only active events
         $events->where('status', 'approved')
+               ->where('is_published', true)
                ->where('end_time', '>', now());
 
         $events = $events->orderBy('start_time', 'asc')->paginate(9);
@@ -55,6 +56,12 @@ class EventController extends Controller
         $form = \Illuminate\Support\Facades\DB::table('forms')->where('event_id', $id)->whereIn('type', ['registration', 'recruitment'])->first();
         $fields = $form ? \Illuminate\Support\Facades\DB::table('form_questions')->where('form_id', $form->id)->orderBy('order')->get() : collect([]);
         $positions = \Illuminate\Support\Facades\DB::table('event_positions')->where('event_id', $id)->get();
+        
+        foreach($positions as $pos) {
+            $registeredCount = \Illuminate\Support\Facades\DB::table('registrations')->where('event_position_id', $pos->id)->count();
+            $pos->remaining = max(0, $pos->quantity - $registeredCount);
+        }
+        
         $participants = \App\Models\Checkin::with('user')->where('event_id', $id)->latest()->take(12)->get();
 
         return view('student.events.show', [
@@ -74,7 +81,7 @@ class EventController extends Controller
         // Get events user has registered for
         $registeredEvents = Event::whereHas('checkins', function($q) use ($userId) {
             $q->where('user_id', $userId);
-        })->with('schedules')->get();
+        })->where('status', '!=', 'cancelled')->with('schedules')->get();
 
         $calendarItems = collect();
 
@@ -125,7 +132,7 @@ class EventController extends Controller
         $userId = auth()->id();
         $events = Event::whereHas('checkins', function($q) use ($userId) {
             $q->where('user_id', $userId);
-        })->with(['checkins' => function($q) use ($userId) {
+        })->where('status', '!=', 'cancelled')->with(['checkins' => function($q) use ($userId) {
             $q->where('user_id', $userId);
         }])->orderBy('start_time')->get();
         
@@ -162,6 +169,7 @@ class EventController extends Controller
             ->whereHas('checkins', function($q) use ($userId) {
                 $q->where('user_id', $userId);
             })
+            ->where('status', '!=', 'cancelled')
             ->where('end_time', '<', now())
             ->orderBy('end_time', 'desc')
             ->get();
@@ -269,6 +277,7 @@ class EventController extends Controller
         }
 
         $checkin->delete();
+        \App\Models\Registration::where('user_id', $user->id)->where('event_id', $event->id)->delete();
 
         return back()->with('success', 'Đã hủy đăng ký thành công.');
     }

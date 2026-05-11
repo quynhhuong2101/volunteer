@@ -22,6 +22,7 @@ class Event extends Model
         'image',
         'scope',
         'is_registration_paused',
+        'is_published',
         'requirements',
         'benefits',
         'contact_name',
@@ -33,6 +34,7 @@ class Event extends Model
         'end_time' => 'datetime',
         'requirements' => 'array',
         'benefits' => 'array',
+        'is_published' => 'boolean',
     ];
 
     public function organizer()
@@ -62,6 +64,16 @@ class Event extends Model
 
     public function getSlotsAttribute()
     {
+        // First try to calculate capacity from event_positions
+        $positionsCapacity = \Illuminate\Support\Facades\DB::table('event_positions')
+            ->where('event_id', $this->id)
+            ->sum('quantity');
+
+        if ($positionsCapacity > 0) {
+            return $positionsCapacity;
+        }
+
+        // Fallback to max_participants
         return $this->max_participants;
     }
 
@@ -77,7 +89,10 @@ class Event extends Model
         if ($this->status == 'rejected') return 'rejected';
         if ($this->status == 'pending') return 'pending';
         
-        // If approved, check time
+        // If approved but not published
+        if ($this->status == 'approved' && !$this->is_published) return 'unpublished';
+        
+        // If approved and published, check time
         $now = now();
         if ($now->lt($this->start_time)) return 'upcoming'; // Approved but not started
         if ($now->between($this->start_time, $this->end_time)) return 'ongoing';
@@ -89,6 +104,7 @@ class Event extends Model
     public function getCanRegisterAttribute()
     {
         if ($this->effective_status !== 'upcoming') return false;
+        if ($this->is_registration_paused) return false;
         if ($this->max_participants && $this->registered >= $this->max_participants) return false;
         return true;
     }

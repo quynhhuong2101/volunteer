@@ -46,7 +46,7 @@ class EventController extends Controller
 
         $events = $eventsRaw->map(function($event) {
             $checkinsCount = $event->checkins_count;
-            $capacity = $event->max_participants ?? 1; // Avoid division by zero
+            $capacity = $event->slots ?? 1; // Avoid division by zero
             $progress = ($checkinsCount / $capacity) * 100;
 
             return [
@@ -58,11 +58,13 @@ class EventController extends Controller
                 'end_date' => \Carbon\Carbon::parse($event->end_time)->format('H:i d/m/Y'),
                 'location' => $event->location,
                 'registered' => $checkinsCount,
-                'capacity' => $event->max_participants,
+                'capacity' => $capacity,
                 'progress' => min($progress, 100),
                 'thumbnail' => \Illuminate\Support\Str::startsWith($event->image, 'http') ? $event->image : ($event->image ? asset($event->image) : 'https://ui-avatars.com/api/?name=' . urlencode($event->title) . '&background=random'),
                 'days_left' => \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($event->start_time), false),
                 'is_registration_paused' => $event->is_registration_paused,
+                'is_published' => $event->is_published,
+                'has_form' => \Illuminate\Support\Facades\DB::table('forms')->where('event_id', $event->id)->where('type', 'registration')->exists(),
                 'scope' => $event->scope == 'trong_truong' ? 'Trong trường' : 'Ngoài trường',
                 'requirements' => $event->requirements ?? [],
                 'benefits' => $event->benefits ?? [],
@@ -126,6 +128,39 @@ class EventController extends Controller
         
         $event->update(['status' => 'cancelled']);
         return back()->with('success', 'Đã hủy sự kiện thành công.');
+    }
+
+    public function destroy($id)
+    {
+        $event = \App\Models\Event::findOrFail($id);
+        if($event->organizer_id != auth()->id()) abort(403);
+        
+        if(!in_array($event->status, ['cancelled', 'rejected'])) {
+             return back()->with('error', 'Chỉ có thể xóa các sự kiện đã bị hủy hoặc từ chối.');
+        }
+
+        $event->delete();
+        return back()->with('success', 'Đã xóa sự kiện thành công khỏi hệ thống.');
+    }
+
+    public function publish($id)
+    {
+        $event = \App\Models\Event::findOrFail($id);
+        if($event->organizer_id != auth()->id()) abort(403);
+        
+        if ($event->status !== 'approved') {
+            return back()->with('error', 'Chỉ có thể công bố sự kiện đã được Ban quản trị duyệt.');
+        }
+
+        $form = \Illuminate\Support\Facades\DB::table('forms')->where('event_id', $id)->where('type', 'registration')->first();
+        if (!$form) {
+            return back()->with('error', 'Vui lòng thiết lập Form đăng ký trước khi công bố sự kiện.');
+        }
+
+        $event->is_published = true;
+        $event->save();
+
+        return back()->with('success', 'Đã công bố sự kiện! Sinh viên hiện có thể đăng ký tham gia.');
     }
 
     public function toggleRegistration($id)

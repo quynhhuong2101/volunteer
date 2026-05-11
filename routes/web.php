@@ -145,6 +145,7 @@ Route::prefix('organization')->name('organization.')->middleware(['auth', 'role:
     Route::get('/events/create', [\App\Http\Controllers\Organization\EventController::class, 'create'])->name('events.create');
     Route::post('/events', [\App\Http\Controllers\Organization\EventController::class, 'store'])->name('events.store');
     Route::post('/events/{id}/cancel', [\App\Http\Controllers\Organization\EventController::class, 'cancel'])->name('events.cancel');
+    Route::post('/events/{id}/publish', [\App\Http\Controllers\Organization\EventController::class, 'publish'])->name('events.publish');
     Route::post('/events/{id}/toggle-registration', [\App\Http\Controllers\Organization\EventController::class, 'toggleRegistration'])->name('events.toggleRegistration');
     Route::get('/events/{id}/edit', [\App\Http\Controllers\Organization\EventController::class, 'edit'])->name('events.edit');
     Route::put('/events/{id}', [\App\Http\Controllers\Organization\EventController::class, 'update'])->name('events.update');
@@ -226,4 +227,6 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/events/{id}/chat', [\App\Http\Controllers\ChatController::class, 'destroy'])->name('chat.destroy');
 });
 
-
+// Chatbot Global Route
+Route::post('/chatbot/respond', [\App\Http\Controllers\ChatbotController::class, 'respond'])
+    ->name('chatbot.respond');

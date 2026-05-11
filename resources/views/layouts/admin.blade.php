@@ -118,9 +118,49 @@
             <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-10">
                 <h1 class="text-xl font-bold text-slate-800">@yield('header', 'Dashboard')</h1>
                 <div class="flex items-center gap-4">
-                    <div class="relative">
-                        <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                        <svg class="w-6 h-6 text-slate-400 hover:text-slate-600 cursor-pointer" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                    @php
+                        $unreadNotifications = \App\Models\Notification::where('user_id', Auth::id())
+                            ->where('is_read', false)
+                            ->orderBy('created_at', 'desc')
+                            ->take(5)
+                            ->get();
+                        $unreadCount = \App\Models\Notification::where('user_id', Auth::id())->where('is_read', false)->count();
+                    @endphp
+                    <div x-data="{ open: false }" class="relative">
+                        <button @click="open = !open" @click.away="open = false" class="relative p-2 focus:outline-none">
+                            <svg class="w-6 h-6 text-slate-400 hover:text-slate-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                            @if($unreadCount > 0)
+                                <span class="absolute top-1 right-1 flex h-3 w-3">
+                                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                  <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500 border-2 border-white"></span>
+                                </span>
+                            @endif
+                        </button>
+
+                        <div x-show="open" x-transition class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg py-2 z-50 border border-slate-100" style="display: none;">
+                            <div class="px-4 py-2 border-b border-slate-100 flex justify-between items-center">
+                                <h3 class="text-sm font-bold text-slate-800">Thông báo</h3>
+                                @if($unreadCount > 0)
+                                    <span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">{{ $unreadCount }} mới</span>
+                                @endif
+                            </div>
+                            <div class="max-h-80 overflow-y-auto custom-scrollbar">
+                                @forelse($unreadNotifications as $notification)
+                                    <a href="{{ $notification->link ?? '#' }}" class="block px-4 py-3 hover:bg-slate-50 border-b border-slate-50 transition-colors {{ $notification->type == 'danger' ? 'bg-red-50/50' : '' }}">
+                                        <p class="text-sm font-bold {{ $notification->type == 'danger' ? 'text-red-600' : 'text-slate-800' }}">{{ $notification->title }}</p>
+                                        <p class="text-xs text-slate-600 mt-1 line-clamp-2">{{ $notification->message }}</p>
+                                        <p class="text-[10px] text-slate-400 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
+                                    </a>
+                                @empty
+                                    <div class="px-4 py-6 text-center text-slate-500 text-sm">
+                                        Không có thông báo mới
+                                    </div>
+                                @endforelse
+                            </div>
+                            <div class="px-4 py-2 text-center border-t border-slate-100">
+                                <a href="#" class="text-xs text-indigo-600 font-bold hover:underline">Xem tất cả</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -152,7 +192,43 @@
         </main>
     </div>
     <!-- Support Chat Widget -->
-    <div x-data="{ chatOpen: false }" class="fixed bottom-6 right-6 z-50">
+    <div x-data="{ 
+            chatOpen: false, 
+            newMessage: '', 
+            isTyping: false,
+            messages: [
+                { sender: 'bot', text: 'Chào bạn! Trợ lý VWA có thể giúp gì cho bạn?' }
+            ],
+            sendMessage() {
+                if(this.newMessage.trim() === '') return;
+                
+                this.messages.push({ sender: 'user', text: this.newMessage });
+                const msgToSend = this.newMessage;
+                this.newMessage = '';
+                this.isTyping = true;
+                
+                this.$nextTick(() => { this.$refs.chatBody.scrollTop = this.$refs.chatBody.scrollHeight; });
+
+                fetch('{{ route('chatbot.respond') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').getAttribute('content')
+                    },
+                    body: JSON.stringify({ message: msgToSend })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    this.isTyping = false;
+                    this.messages.push({ sender: 'bot', text: data.reply });
+                    this.$nextTick(() => { this.$refs.chatBody.scrollTop = this.$refs.chatBody.scrollHeight; });
+                })
+                .catch(err => {
+                    this.isTyping = false;
+                    this.messages.push({ sender: 'bot', text: 'Xin lỗi, hệ thống đang bận.' });
+                });
+            }
+        }" class="fixed bottom-6 right-6 z-50">
         <!-- Chat Window -->
         <div x-show="chatOpen" 
              x-transition:enter="transition ease-out duration-300"
@@ -181,19 +257,28 @@
             </div>
 
             <!-- Body -->
-            <div class="p-4 h-64 overflow-y-auto bg-slate-50 space-y-3">
-                <div class="flex gap-2">
-                    <div class="w-6 h-6 rounded-full bg-indigo-100 flex-shrink-0 flex items-center justify-center text-xs font-bold text-indigo-600">KT</div>
-                    <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-slate-600 border border-slate-200">
-                        Hệ thống đang hoạt động ổn định. Admin cần hỗ trợ gì không?
+            <div x-ref="chatBody" class="p-4 h-64 overflow-y-auto bg-slate-50 space-y-3 custom-scrollbar">
+                <template x-for="(msg, index) in messages" :key="index">
+                    <div :class="msg.sender === 'user' ? 'flex gap-2 flex-row-reverse' : 'flex gap-2'">
+                        <div x-show="msg.sender === 'bot'" class="w-6 h-6 rounded-full bg-indigo-600/20 flex-shrink-0 flex items-center justify-center text-xs font-bold text-indigo-600">BOT</div>
+                        <div :class="msg.sender === 'user' ? 'bg-indigo-600 text-white p-3 rounded-2xl rounded-tr-none shadow-sm text-sm' : 'bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-slate-600 border border-slate-100'" x-text="msg.text"></div>
+                    </div>
+                </template>
+                
+                <div x-show="isTyping" class="flex gap-2" x-cloak>
+                    <div class="w-6 h-6 rounded-full bg-indigo-600/20 flex-shrink-0 flex items-center justify-center text-xs font-bold text-indigo-600">BOT</div>
+                    <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 flex gap-1 items-center">
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></span>
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></span>
                     </div>
                 </div>
             </div>
 
             <!-- Input -->
             <div class="p-3 bg-white border-t border-slate-100 flex gap-2">
-                <input type="text" placeholder="Nhập yêu cầu..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-600">
-                <button class="p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors">
+                <input @keydown.enter="sendMessage()" x-model="newMessage" type="text" placeholder="Nhập tin nhắn..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-600">
+                <button @click="sendMessage()" class="p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                 </button>
             </div>
