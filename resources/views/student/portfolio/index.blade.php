@@ -18,7 +18,13 @@
             <div class="relative -mt-20 md:-mt-24 mb-4">
                 <div class="relative group">
                     <div class="absolute -inset-1 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-md"></div>
-                    <img src="{{ $student['avatar'] }}" alt="{{ $student['name'] }}" class="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-xl object-cover bg-white z-20">
+                    @if($user->avatar && (str_starts_with($user->avatar, 'http') || file_exists(public_path($user->avatar))))
+                        <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-xl object-cover bg-white z-20">
+                    @else
+                        <div class="relative w-32 h-32 md:w-40 md:h-40 rounded-full bg-slate-200 border-4 border-white flex items-center justify-center text-slate-600 font-bold text-5xl md:text-6xl shadow-xl z-20">
+                            {{ substr($user->name ?? 'U', 0, 1) }}
+                        </div>
+                    @endif
                 </div>
             </div>
             

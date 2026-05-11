@@ -181,14 +181,7 @@
                     <h4 class="text-lg font-bold text-gray-800 mb-1 line-clamp-1 group-hover:text-blue-600 transition-colors">{{ $event->title }}</h4>
                     <p class="text-gray-500 text-sm line-clamp-2 mb-3">{{ $event->description }}</p>
                     <div class="mt-auto flex items-center justify-between">
-                        <div class="flex -space-x-2">
-                             @foreach(range(1,3) as $i)
-                                <div class="w-6 h-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[8px] overflow-hidden">
-                                     <img src="https://ui-avatars.com/api/?name=User+{{$i}}&background=random" />
-                                </div>
-                             @endforeach
-                             <div class="w-6 h-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-[8px] text-gray-500 font-bold">+</div>
-                        </div>
+                        <div></div>
                         <a href="{{ route('student.events.show', $event->id) }}" class="bg-blue-600 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-sm hover:bg-blue-700 transition-colors">
                             Đăng ký ngay
                         </a>

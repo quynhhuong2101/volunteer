@@ -36,7 +36,13 @@
             <div class="flex flex-col sm:flex-row items-center sm:items-end gap-6 mb-12 -mt-2">
                 <div class="relative group">
                     <div class="w-32 h-32 rounded-full p-1 bg-gradient-to-tr from-blue-500 to-purple-500 shadow-lg group-hover:scale-105 transition-transform duration-300">
-                        <img src="{{ $user->avatar }}" alt="Profile" class="w-full h-full rounded-full object-cover border-4 border-white bg-white">
+                        @if($user->avatar && (str_starts_with($user->avatar, 'http') || file_exists(public_path($user->avatar))))
+                            <img src="{{ $user->avatar_url }}" alt="Profile" class="w-full h-full rounded-full object-cover border-4 border-white bg-white">
+                        @else
+                            <div class="w-full h-full rounded-full bg-slate-200 border-4 border-white flex items-center justify-center text-slate-600 font-bold text-5xl shadow-inner">
+                                {{ substr($user->name ?? 'U', 0, 1) }}
+                            </div>
+                        @endif
                     </div>
                     <label for="avatar_upload" class="absolute bottom-1 right-1 bg-primary hover:bg-blue-600 text-white p-2.5 rounded-full shadow-lg cursor-pointer transition-colors transform hover:scale-110">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>

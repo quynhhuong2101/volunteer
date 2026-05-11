@@ -81,7 +81,7 @@ class PortfolioController extends Controller
             ];
         }
 
-        return view('student.portfolio.index', compact('student', 'skills', 'statsList', 'timeline', 'certificates'));
+        return view('student.portfolio.index', compact('user', 'student', 'skills', 'statsList', 'timeline', 'certificates'));
     }
 
     public function exportPdf()

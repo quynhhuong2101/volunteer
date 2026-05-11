@@ -17,14 +17,20 @@
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Họ và Tên</label>
                     <input id="name" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary transition duration-150 text-gray-700" 
-                           type="text" name="name" :value="old('name')" required autofocus autocomplete="name" placeholder="Nguyễn Văn A" />
+                           type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name" placeholder="Nguyễn Văn A" />
+                    @error('name')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- Email Address -->
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Trường (Ưu tiên)</label>
                     <input id="email" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary transition duration-150 text-gray-700" 
-                           type="email" name="email" :value="old('email')" required autocomplete="username" placeholder="sv.nguyenvana@university.edu.vn" />
+                           type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="sv.nguyenvana@university.edu.vn" />
+                    @error('email')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- Password -->
@@ -32,6 +38,9 @@
                     <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
                     <input id="password" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary transition duration-150 text-gray-700" 
                            type="password" name="password" required autocomplete="new-password" placeholder="Tối thiểu 8 ký tự" />
+                    @error('password')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- Confirm Password -->

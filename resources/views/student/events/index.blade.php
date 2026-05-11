@@ -160,19 +160,9 @@
                 <!-- Footer Info -->
                 <div class="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <div class="flex -space-x-2">
-                            @php
-                                $checkinCount = $event->checkins()->count();
-                            @endphp
-                            @if($checkinCount > 0)
-                                @foreach(range(1, min(2, $checkinCount)) as $i)
-                                    <img class="w-7 h-7 rounded-full border-2 border-white" src="https://ui-avatars.com/api/?name=User+{{$i}}&background=random" alt="">
-                                @endforeach
-                                @if($checkinCount > 2)
-                                    <div class="w-7 h-7 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[9px] font-bold text-slate-500">+{{ $checkinCount - 2 }}</div>
-                                @endif
-                            @endif
-                        </div>
+                        @php
+                            $checkinCount = $event->checkins()->count();
+                        @endphp
                         <span class="text-xs font-bold text-slate-500"><span class="text-slate-800">{{ $checkinCount }}</span> tham gia</span>
                     </div>
 

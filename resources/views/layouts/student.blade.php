@@ -217,8 +217,8 @@
                         </div>
                         <div class="relative group cursor-pointer">
                             <div class="absolute -inset-0.5 bg-gradient-to-br from-primary to-accent rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur"></div>
-                            @if(isset(Auth::user()->avatar))
-                                <img src="{{ Auth::user()->avatar }}" alt="Avatar" class="relative w-10 h-10 rounded-full border-2 border-white object-cover shadow-sm">
+                            @if(Auth::user()->avatar && (str_starts_with(Auth::user()->avatar, 'http') || file_exists(public_path(Auth::user()->avatar))))
+                                <img src="{{ Auth::user()->avatar_url }}" alt="Avatar" class="relative w-10 h-10 rounded-full border-2 border-white object-cover shadow-sm">
                             @else
                                 <div class="relative w-10 h-10 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center text-slate-600 font-bold shadow-sm group-hover:bg-white group-hover:text-primary transition-colors">
                                     {{ substr(Auth::user()->name ?? 'U', 0, 1) }}

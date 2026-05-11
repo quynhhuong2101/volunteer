@@ -174,12 +174,8 @@
                     </div>
                 @else
                     <!-- Participants Preview -->
-                     <div class="flex -space-x-2">
-                        <img class="w-8 h-8 rounded-full border-2 border-white ring-1 ring-slate-100" src="https://ui-avatars.com/api/?name=User+A&background=random" alt="">
-                        <img class="w-8 h-8 rounded-full border-2 border-white ring-1 ring-slate-100" src="https://ui-avatars.com/api/?name=User+B&background=random" alt="">
-                        @if($event['registered'] > 2)
-                        <div class="w-8 h-8 rounded-full border-2 border-white bg-slate-200 ring-1 ring-slate-100 flex items-center justify-center text-xs font-bold text-slate-600">+{{ $event['registered'] - 2 }}</div>
-                        @endif
+                     <div class="text-sm font-bold text-slate-600">
+                        <span class="text-indigo-600">{{ $event['registered'] }}</span> người đăng ký
                     </div>
 
                     <!-- Primary Actions -->
